@@ -1,29 +1,37 @@
-export interface FormFieldOption {
+export interface SelectOption {
     label: string;
     value: string;
 }
-export interface FormField {
-    name: string;
-    label: string;
-    type: 'text' | 'number' | 'radio' | 'checkbox' | 'select' | 'button' | string;
-    required: boolean;
-    placeholder?: string;
+export interface ValidationRule {
+    required?: boolean;
     minLength?: number;
     maxLength?: number;
     pattern?: string;
-    options?: FormFieldOption[];
-    validationMessages?: Record<string, string>;
+    messages?: Record<string, string>;
+}
+export interface FormAction {
+    label: string;
+    actionType: 'submit' | 'next' | 'previous' | string;
+}
+export interface FormField {
+    id: string;
+    name: string;
+    label: string;
+    type: 'text' | 'number' | 'radio' | 'checkbox' | 'select' | 'button' | string;
+    placeholder?: string;
+    options?: SelectOption[];
+    validation?: ValidationRule;
     order: number;
 }
-export interface FormSection {
+export interface FormStep {
+    id: string;
     title: string;
     fields: FormField[];
+    actions: FormAction[];
     order: number;
 }
-export interface FormStage {
+export interface FormSchema {
+    id: string;
     title: string;
-    sections: FormSection[];
-    buttonText: string;
-    order: number;
+    steps: FormStep[];
 }
-export type NormalizedFormSchema = FormStage[];

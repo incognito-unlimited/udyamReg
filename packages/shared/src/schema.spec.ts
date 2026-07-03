@@ -1,36 +1,40 @@
-import { NormalizedFormSchema } from './schema';
+import { FormSchema } from './schema';
 
-describe('NormalizedFormSchema', () => {
+describe('FormSchema', () => {
   it('should allow valid form schema structures', () => {
-    const mockSchema: NormalizedFormSchema = [
-      {
-        title: 'Stage 1',
-        buttonText: 'Next',
-        order: 1,
-        sections: [
-          {
-            title: 'Personal Details',
-            order: 1,
-            fields: [
-              {
-                name: 'firstName',
-                label: 'First Name',
-                type: 'text',
+    const mockSchema: FormSchema = {
+      id: 'udyam-registration',
+      title: 'Udyam Registration',
+      steps: [
+        {
+          id: 'stage-1',
+          title: 'Stage 1',
+          order: 1,
+          actions: [
+            { label: 'Next', actionType: 'next' }
+          ],
+          fields: [
+            {
+              id: 'firstName',
+              name: 'firstName',
+              label: 'First Name',
+              type: 'text',
+              order: 1,
+              validation: {
                 required: true,
-                order: 1,
                 minLength: 2,
                 maxLength: 50,
-                validationMessages: {
+                messages: {
                   required: 'First Name is required',
                 },
               },
-            ],
-          },
-        ],
-      },
-    ];
+            },
+          ],
+        },
+      ],
+    };
 
     expect(mockSchema).toBeDefined();
-    expect(mockSchema[0].sections[0].fields[0].name).toBe('firstName');
+    expect(mockSchema.steps[0].fields[0].name).toBe('firstName');
   });
 });

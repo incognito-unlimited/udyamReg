@@ -1,7 +1,7 @@
 import puppeteer from 'puppeteer';
 import * as fs from 'fs';
 import * as path from 'path';
-import { NormalizedFormSchema, FormStage, FormSection } from '@udyam/shared';
+import { FormSchema, FormStep } from '@udyam/shared';
 import { stage2Fixture } from './fixtures';
 
 async function scrapeUdyamRegistration() {
@@ -26,71 +26,74 @@ async function scrapeUdyamRegistration() {
     // We can query specific inputs if they exist, or fallback to known standard structure if inaccessible.
     const aadhaarInput = document.querySelector('input[id*="Aadhar"]') as HTMLInputElement;
     const nameInput = document.querySelector('input[id*="Name"]') as HTMLInputElement;
-    const consentCheck = document.querySelector('input[type="checkbox"]') as HTMLInputElement;
     const validateBtn = document.querySelector('input[type="submit"], button[id*="Validate"]') as HTMLButtonElement;
 
     return {
+      id: 'aadhaar-verification',
       title,
-      sections: [
+      order: 1,
+      actions: [
+        { label: validateBtn?.value || validateBtn?.textContent?.trim() || 'Validate & Generate OTP', actionType: 'submit' }
+      ],
+      fields: [
         {
-          title: 'Aadhaar Details',
+          id: 'aadhaarNumber',
+          name: 'aadhaarNumber',
+          label: 'Aadhaar Number',
+          type: 'number',
           order: 1,
-          fields: [
-            {
-              name: 'aadhaarNumber',
-              label: 'Aadhaar Number',
-              type: 'number',
-              required: true,
-              order: 1,
-              minLength: 12,
-              maxLength: 12,
-              placeholder: aadhaarInput?.placeholder || 'Enter 12 digit Aadhaar Number',
-              validationMessages: {
-                required: 'Aadhaar Number is required',
-                pattern: 'Aadhaar must be 12 digits',
-              }
-            },
-            {
-              name: 'entrepreneurName',
-              label: 'Name of Entrepreneur',
-              type: 'text',
-              required: true,
-              order: 2,
-              placeholder: nameInput?.placeholder || 'Name as per Aadhaar',
-              validationMessages: {
-                required: 'Name is required'
-              }
+          placeholder: aadhaarInput?.placeholder || 'Enter 12 digit Aadhaar Number',
+          validation: {
+            required: true,
+            minLength: 12,
+            maxLength: 12,
+            messages: {
+              required: 'Aadhaar Number is required',
+              pattern: 'Aadhaar must be 12 digits',
             }
-          ]
+          }
         },
         {
-          title: 'Consent',
+          id: 'entrepreneurName',
+          name: 'entrepreneurName',
+          label: 'Name of Entrepreneur',
+          type: 'text',
           order: 2,
-          fields: [
-            {
-              name: 'consent',
-              label: 'I validate that the Aadhaar information is correct and provide consent.',
-              type: 'checkbox',
-              required: true,
-              order: 1,
-              validationMessages: {
-                required: 'Consent is mandatory to proceed'
-              }
+          placeholder: nameInput?.placeholder || 'Name as per Aadhaar',
+          validation: {
+            required: true,
+            messages: {
+              required: 'Name is required'
             }
-          ]
+          }
+        },
+        {
+          id: 'consent',
+          name: 'consent',
+          label: 'I validate that the Aadhaar information is correct and provide consent.',
+          type: 'checkbox',
+          order: 3,
+          validation: {
+            required: true,
+            messages: {
+              required: 'Consent is mandatory to proceed'
+            }
+          }
         }
-      ],
-      buttonText: validateBtn?.value || validateBtn?.textContent?.trim() || 'Validate & Generate OTP',
-      order: 1
-    } as FormStage;
+      ]
+    } as FormStep;
   });
 
   await browser.close();
 
-  const finalSchema: NormalizedFormSchema = [
-    stage1Data,
-    stage2Fixture
-  ];
+  const finalSchema: FormSchema = {
+    id: 'udyam-registration',
+    title: 'Udyam Registration',
+    steps: [
+      stage1Data,
+      stage2Fixture
+    ]
+  };
 
   const outputDir = path.join(__dirname, '../output');
   if (!fs.existsSync(outputDir)) {
