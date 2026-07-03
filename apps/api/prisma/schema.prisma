@@ -1,0 +1,62 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RegistrationState {
+  STARTED
+  AADHAAR_PENDING
+  AADHAAR_VERIFIED
+  PAN_PENDING
+  COMPLETED
+}
+
+model Registration {
+  id                  String               @id @default(uuid())
+  state               RegistrationState    @default(STARTED)
+  
+  aadhaarVerification AadhaarVerification?
+  panVerification     PanVerification?
+
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+}
+
+model AadhaarVerification {
+  id                  String       @id @default(uuid())
+  
+  aadhaarHash         String       // Hash of the full Aadhaar number
+  aadhaarLastFour     String       @db.VarChar(4) // Last 4 digits for UI masking
+  entrepreneurName    String       // Name as per Aadhaar
+  
+  otpHash             String?      // Hashed OTP (never plaintext)
+  otpExpiresAt        DateTime?
+  
+  verified            Boolean      @default(false)
+  
+  registrationId      String       @unique
+  registration        Registration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+}
+
+model PanVerification {
+  id                  String       @id @default(uuid())
+  
+  organizationType    String
+  panNumber           String       // Standard normalized PAN format
+  hasPan              Boolean      @default(true)
+  
+  verified            Boolean      @default(false)
+  
+  registrationId      String       @unique
+  registration        Registration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+}
